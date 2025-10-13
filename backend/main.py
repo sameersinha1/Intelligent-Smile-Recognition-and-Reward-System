@@ -26,7 +26,7 @@ reward_timers = {}  # face_id -> reward start time
 # Start camera
 cap = cv2.VideoCapture(0)
 last_call_time = 0
-call_interval = 5  # seconds between "Please smile" messages
+call_interval = 10  # seconds between "Please smile" messages
 
 while True:
     ret, frame = cap.read()
