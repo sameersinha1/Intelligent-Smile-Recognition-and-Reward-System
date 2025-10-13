@@ -1,53 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Smart Smile Recognition & Reward</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Smart Smile Recognition & Reward</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <style>body { font-family: "Inter", sans-serif; }</style>
 </head>
-<body>
-    <h1>Smart Smile Recognition & Reward</h1>
-    <img id="camera" src="" width="640" height="480">
-    <p>Connected: <span id="status">No</span></p>
-    <h3>Points</h3>
-    <ul id="points"></ul>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 flex flex-col items-center">
 
-    <script>
-        const socket = io('http://127.0.0.1:5000'); // make sure URL matches your backend
+  <div class="w-full max-w-2xl bg-white shadow-xl rounded-xl p-6">
+    <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">Smart Smile Recognition & Reward</h1>
 
-        const statusEl = document.getElementById('status');
-        const cameraEl = document.getElementById('camera');
-        const pointsEl = document.getElementById('points');
+    <div class="relative w-full aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden border-4 border-indigo-500 shadow-inner">
+      <img id="camera" src="https://placehold.co/640x480/cccccc/333333?text=Awaiting+Camera+Stream..." class="w-full h-full object-cover">
+      <div id="loadingIndicator" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/70 text-white text-xl font-medium pointer-events-none">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-400 mb-4"></div>
+        Connecting to Camera Stream...
+        <p id="debugStatus" class="text-sm mt-2 text-gray-300">Attempting to establish connection.</p>
+      </div>
+    </div>
 
-        socket.on('connect', () => {
-            statusEl.innerText = 'Yes';
-            console.log('Connected to server');
-        });
+    <div class="mt-6 flex justify-between items-center border-t pt-4">
+      <p class="text-lg font-medium">Server Status: <span id="status" class="font-bold text-red-500">No</span></p>
+      <p class="text-lg font-medium text-indigo-700">Frames Received: <span id="frameCounter" class="font-bold text-gray-800">0</span></p>
+    </div>
 
-        socket.on('disconnect', () => {
-            statusEl.innerText = 'No';
-            console.log('Disconnected from server');
-        });
+    <h3 class="text-2xl font-semibold mt-6 border-b pb-2 text-gray-700">User Points</h3>
+    <ul id="points" class="mt-3 space-y-2">
+      <li class="text-gray-500">No users detected yet.</li>
+    </ul>
+  </div>
 
-        // Receive frame from backend
-        socket.on('frame', data => {
-            cameraEl.src = 'data:image/jpeg;base64,' + data.image;
-        });
+  <script>
+    const socket = io();
+    const statusEl = document.getElementById('status');
+    const cameraEl = document.getElementById('camera');
+    const pointsEl = document.getElementById('points');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const debugStatusEl = document.getElementById('debugStatus');
+    const frameCounterEl = document.getElementById('frameCounter');
 
-        // Receive points update
-        socket.on('points_update', data => {
-            let li = document.getElementById(data.face_id);
-            if (!li) {
-                li = document.createElement('li');
-                li.id = data.face_id;
-                pointsEl.appendChild(li);
-            }
-            li.innerText = `${data.face_id}: ${data.points} points`;
-        });
+    let frameCount = 0;
 
-        // Reward event
-        socket.on('reward', data => {
-            alert(data.message);
-        });
-    </script>
-</body>
-</html>
+    socket.on('connect', () => {
+      statusEl.innerText = 'Yes';
+      statusEl.classList.replace('text-red-500', 'text-green-500');
+      debugStatusEl.innerText = 'Connected. Waiting for first frame...';
+    });
+
+    socket.on('disconnect', () => {
+      statusEl.innerText = 'No';
+      statusEl.classList.replace('text-green-500', 'text-red-500');
+      debugStatusEl.innerText = 'Disconnected.';
+      loadingIndicator.classList.remove('hidden');
+    });
+
+    socket.on('frame', data => {
+      if (data.image) {
+        cameraEl.src = 'data:image/jpeg;base64,' + data.image;
+        loadingIndicator.classList.add('hidden');
+        frameCount++;
+        frameCounterEl.innerText = frameCount;
+        debugStatusEl.innerText = 'Streaming live...';
+      }
+    });
+
+    socket.on('points_update', data => {
+      let li = document.getElementById(data.face_id);
+      if (!li) {
+        li = document.createElement('li');
+        li.id = data.face_id;
