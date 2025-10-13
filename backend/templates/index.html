@@ -70,4 +70,12 @@
       let li = document.getElementById(data.face_id);
       if (!li) {
         li = document.createElement('li');
-        li.id = data.face_id;
+              li.id = data.face_id;
+              li.className = "text-gray-800";
+              li.innerText = `User ${data.face_id}: ${data.points} points`;
+              pointsEl.appendChild(li);
+            } else {
+              li.innerText = `User ${data.face_id}: ${data.points} points`;
+            }
+          });
+        </script>
