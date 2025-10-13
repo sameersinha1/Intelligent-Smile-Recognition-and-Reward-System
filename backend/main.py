@@ -15,7 +15,7 @@ points_per_smile = 10
 reward_threshold = 100
 
 # In-memory points storage
-users = {}  # {"User1": points, "User2": points, ...}
+users = {"user1": 0,"user2": 1,"user3": 2} 
 
 # Face tracking
 face_id_counter = 0
