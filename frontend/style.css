@@ -1,0 +1,42 @@
+/* static/styles.css */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #121212;
+  color: #eee;
+  margin: 0;
+  padding: 20px;
+}
+#app { max-width: 900px; margin: 0 auto; }
+.video-panel {
+  position: relative;
+  width: 720px;
+  max-width: 100%;
+  margin-bottom: 12px;
+  border: 2px solid #333;
+}
+.video-panel img {
+  width: 100%;
+  display: block;
+}
+#status { display:flex; gap:24px; align-items:flex-start; }
+#leaderboard { background:#1e1e1e; padding:12px; border-radius:8px; }
+.reward-toast {
+  position: fixed;
+  right: 30px;
+  top: 30px;
+  background: linear-gradient(90deg,#ffb86b,#ff6b6b);
+  color: #111;
+  padding: 14px 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  transform: translateY(-20px);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9999;
+}
+.reward-toast.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+#pointsList { list-style: none; padding: 0; margin: 0; }
+#pointsList li { padding: 6px 0; border-bottom: 1px dashed #2a2a2a; }
