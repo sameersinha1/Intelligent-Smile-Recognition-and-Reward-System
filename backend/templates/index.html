@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Smile Recognition & Reward</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Smart Smile Recognition & Reward</h1>
+    <img id="camera" src="" width="640" height="480">
+    <p>Connected: <span id="status">No</span></p>
+    <h3>Points</h3>
+    <ul id="points"></ul>
+
+    <script>
+        const socket = io('http://127.0.0.1:5000'); // make sure URL matches your backend
+
+        const statusEl = document.getElementById('status');
+        const cameraEl = document.getElementById('camera');
+        const pointsEl = document.getElementById('points');
+
+        socket.on('connect', () => {
+            statusEl.innerText = 'Yes';
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            statusEl.innerText = 'No';
+            console.log('Disconnected from server');
+        });
+
+        // Receive frame from backend
+        socket.on('frame', data => {
+            cameraEl.src = 'data:image/jpeg;base64,' + data.image;
+        });
+
+        // Receive points update
+        socket.on('points_update', data => {
+            let li = document.getElementById(data.face_id);
+            if (!li) {
+                li = document.createElement('li');
+                li.id = data.face_id;
+                pointsEl.appendChild(li);
+            }
+            li.innerText = `${data.face_id}: ${data.points} points`;
+        });
+
+        // Reward event
+        socket.on('reward', data => {
+            alert(data.message);
+        });
+    </script>
+</body>
+</html>
