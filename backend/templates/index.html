@@ -5,27 +5,44 @@
   <title>Smart Smile Recognition & Reward</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-  <style>body { font-family: "Inter", sans-serif; }</style>
+  <style>
+    body { font-family: "Inter", sans-serif; }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 sm:p-8 flex flex-col items-center">
 
   <div class="w-full max-w-2xl bg-white shadow-xl rounded-xl p-6">
-    <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">Smart Smile Recognition & Reward</h1>
+    <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">
+      Smart Smile Recognition & Reward
+    </h1>
 
+    <!-- Camera Display -->
     <div class="relative w-full aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden border-4 border-indigo-500 shadow-inner">
-      <img id="camera" src="https://placehold.co/640x480/cccccc/333333?text=Awaiting+Camera+Stream..." class="w-full h-full object-cover">
-      <div id="loadingIndicator" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/70 text-white text-xl font-medium pointer-events-none">
+      <img id="camera" src="https://placehold.co/640x480/cccccc/333333?text=Awaiting+Camera+Stream..."
+           class="w-full h-full object-cover">
+      <div id="loadingIndicator"
+           class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/70 text-white text-xl font-medium pointer-events-none">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-400 mb-4"></div>
         Connecting to Camera Stream...
-        <p id="debugStatus" class="text-sm mt-2 text-gray-300">Attempting to establish connection.</p>
+        <p id="debugStatus" class="text-sm mt-2 text-gray-300">
+          Attempting to establish connection.
+        </p>
       </div>
     </div>
 
+    <!-- Status and Counter -->
     <div class="mt-6 flex justify-between items-center border-t pt-4">
-      <p class="text-lg font-medium">Server Status: <span id="status" class="font-bold text-red-500">No</span></p>
-      <p class="text-lg font-medium text-indigo-700">Frames Received: <span id="frameCounter" class="font-bold text-gray-800">0</span></p>
+      <p class="text-lg font-medium">
+        Server Status:
+        <span id="status" class="font-bold text-red-500">No</span>
+      </p>
+      <p class="text-lg font-medium text-indigo-700">
+        Frames Received:
+        <span id="frameCounter" class="font-bold text-gray-800">0</span>
+      </p>
     </div>
 
+    <!-- Points Section -->
     <h3 class="text-2xl font-semibold mt-6 border-b pb-2 text-gray-700">User Points</h3>
     <ul id="points" class="mt-3 space-y-2">
       <li class="text-gray-500">No users detected yet.</li>
@@ -33,7 +50,8 @@
   </div>
 
   <script>
-    const socket = io();
+    const socket = io("http://127.0.0.1:5000"); // ✅ Connect explicitly to Flask backend port
+
     const statusEl = document.getElementById('status');
     const cameraEl = document.getElementById('camera');
     const pointsEl = document.getElementById('points');
@@ -43,21 +61,26 @@
 
     let frameCount = 0;
 
+    // ✅ When connection established
     socket.on('connect', () => {
       statusEl.innerText = 'Yes';
       statusEl.classList.replace('text-red-500', 'text-green-500');
       debugStatusEl.innerText = 'Connected. Waiting for first frame...';
+      console.log("✅ Connected to backend Socket.IO server");
     });
 
+    // ❌ When disconnected
     socket.on('disconnect', () => {
       statusEl.innerText = 'No';
       statusEl.classList.replace('text-green-500', 'text-red-500');
       debugStatusEl.innerText = 'Disconnected.';
       loadingIndicator.classList.remove('hidden');
+      console.warn("⚠️ Disconnected from backend server");
     });
 
+    // 🎥 Receiving live camera frame (base64)
     socket.on('frame', data => {
-      if (data.image) {
+      if (data && data.image) {
         cameraEl.src = 'data:image/jpeg;base64,' + data.image;
         loadingIndicator.classList.add('hidden');
         frameCount++;
@@ -66,16 +89,29 @@
       }
     });
 
+    // 🏅 Updating user points dynamically
     socket.on('points_update', data => {
+      if (!data || !data.face_id) return;
+
       let li = document.getElementById(data.face_id);
       if (!li) {
         li = document.createElement('li');
-              li.id = data.face_id;
-              li.className = "text-gray-800";
-              li.innerText = `User ${data.face_id}: ${data.points} points`;
-              pointsEl.appendChild(li);
-            } else {
-              li.innerText = `User ${data.face_id}: ${data.points} points`;
-            }
-          });
-        </script>
+        li.id = data.face_id;
+        li.className = "text-gray-800";
+        li.innerText = `User ${data.face_id}: ${data.points} points`;
+        if (pointsEl.firstChild && pointsEl.firstChild.innerText === "No users detected yet.") {
+          pointsEl.innerHTML = '';
+        }
+        pointsEl.appendChild(li);
+      } else {
+        li.innerText = `User ${data.face_id}: ${data.points} points`;
+      }
+    });
+
+    // 🧠 Optional debug log for any custom messages
+    socket.on('debug', msg => {
+      console.log("🪶 DEBUG:", msg);
+    });
+  </script>
+</body>
+</html>
