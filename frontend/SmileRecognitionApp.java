@@ -16,10 +16,7 @@ import com.smilereward.model.DetectionResult;
 import java.io.File;
 import java.util.Optional;
 
-/**
- * Main JavaFX Application for Smile Recognition System
- * Provides webcam capture, image upload, and real-time smile detection
- */
+
 public class SmileRecognitionApp extends Application {
 
     private WebcamService webcamService;
